@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cek Ongkir TAM Cargo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body, html {
+      margin: 0; padding: 0; height: 100%;
+      font-family: 'Montserrat', sans-serif;
+      color: #001f3f; /* biru dongker */
+      overflow-x: hidden;
+      background: #fff;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* Fullscreen background video */
+    #bg-video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -3;
+      filter: brightness(0.6);
+      transition: filter 0.3s ease;
+    }
+
+    /* White semi-transparent overlay */
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(255, 255, 255, 0.85);
+      z-index: -2;
+    }
+
+    /* Container with form and worker image */
+    #container {
+      position: relative;
+      max-width: 900px;
+      margin: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 3rem;
+      padding: 1rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      z-index: 10;
+    }
+
+    /* Form box */
+    #form-box {
+      background: rgba(255 255 255 / 0.95);
+      border-radius: 16px;
+      padding: 2.5rem 3rem;
+      max-width: 450px;
+      width: 100%;
+      box-shadow:
+        0 8px 32px rgba(0,31,63,0.15);
+      text-align: center;
+      color: #001f3f;
+      user-select: none;
+      position: relative;
+    }
+
+    /* Gold shimmer text effect */
+    .gold-shimmer {
+      font-weight: 700;
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(
+        90deg,
+        #001f3f 0%,
+        #bfa14a 20%,
+        #f5d76e 40%,
+        #bfa14a 60%,
+        #001f3f 80%
+      );
+      background-size: 200% 100%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: shimmer 3s linear infinite;
+      user-select: text;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    #form-box img.logo {
+      max-width: 140px;
+      margin-bottom: 1.5rem;
+      user-select: none;
+    }
+
+    form {
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #001f3f;
+      user-select: none;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1.5px solid #001f3f;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      font-family: 'Montserrat', sans-serif;
+      color: #001f3f;
+      background: #fff;
+      transition: box-shadow 0.3s ease;
+      outline-offset: 2px;
+      outline-color: #bfa14a;
+      user-select: text;
+    }
+
+    select:focus, input[type="number"]:focus {
+      box-shadow: 0 0 8px #bfa14a;
+      outline: none;
+      background: #fff9e6;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    button {
+      width: 100%;
+      background-color: #001f3f;
+      color: #f5d76e; /* emas */
+      font-weight: 700;
+      font-size: 1.2rem;
+      padding: 0.85rem 1.5rem;
+      border: 2px solid #bfa14a;
+      border-radius: 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      box-shadow: 0 4px 15px rgba(191, 161, 74, 0.7);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+      user-select: none;
+    }
+
+    button:hover, button:focus {
+      background-color: #bfa14a;
+      color: #001f3f;
+      box-shadow: 0 6px 20px rgba(191, 161, 74, 0.9);
+      outline: none;
+    }
+
+    /* Worker image */
+    #worker-box {
+      max-width: 350px;
+      width: 100%;
+      user-select: none;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow:
+        0 8px 32px rgba(0,31,63,0.15);
+      flex-shrink: 0;
+      transition: box-shadow 0.3s ease;
+    }
+
+    #worker-box:hover {
+      box-shadow:
+        0 0 30px 8px rgba(191, 161, 74, 0.6);
+    }
+
+    #worker-box img {
+      width: 100%;
+      display: block;
+      border-radius: 16px;
+      user-select: none;
+    }
+
+    /* Result box */
+    #result {
+      max-width: 450px;
+      margin: 2rem auto 3rem;
+      background: rgba(255 255 255 / 0.95);
+      border-radius: 16px;
+      padding: 2rem 2.5rem;
+      box-shadow:
+        0 0 20px 3px rgba(191, 161, 74, 0.7);
+      color: #001f3f;
+      font-weight: 700;
+      font-size: 1.2rem;
+      line-height: 1.6;
+      user-select: text;
+      text-align: center;
+      display: none;
+      text-shadow:
+        0 0 6px #bfa14a;
+    }
+
+    /* Gold shimmer for result highlights */
+    .gold-text {
+      background: linear-gradient(
+        90deg,
+        #001f3f 0%,
+        #bfa14a 20%,
+        #f5d76e 40%,
+        #bfa14a 60%,
+        #001f3f 80%
+      );
+      background-size: 200% 100%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: shimmer 3s linear infinite;
+      font-weight: 800;
+    }
+
+    /* Team video below container */
+    #team-video-container {
+      max-width: 900px;
+      margin: 0 auto 4rem;
+      text-align: center;
+      user-select: none;
+      z-index: 10;
+      position: relative;
+    }
+
+    #team-video-container video {
+      width: 400px;
+      max-width: 90vw;
+      border-radius: 16px;
+      box-shadow:
+        0 0 20px 3px rgba(191, 161, 74, 0.7);
+      outline-offset: 4px;
+      outline-color: #bfa14a;
+      outline-style: solid;
+      outline-width: 2px;
+      transition: box-shadow 0.3s ease;
+    }
+
+    #team-video-container video:hover,
+    #team-video-container video:focus {
+      box-shadow:
+        0 0 30px 6px rgba(191, 161, 74, 1);
+      outline: none;
+      cursor: pointer;
+    }
+
+    #team-video-container p {
+      color: #001f3f;
+      margin-top: 0.5rem;
+      font-weight: 600;
+      user-select: none;
+      text-shadow: 0 0 6px #bfa14a;
+    }
+
+    /* Robot assistant button */
+    #robot-assistant {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: #001f3f;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(191, 161, 74, 0.8);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: box-shadow 0.3s ease, background-color 0.3s ease;
+      user-select: none;
+    }
+    #robot-assistant:hover, #robot-assistant:focus {
+      box-shadow: 0 0 25px 5px rgba(191, 161, 74, 1);
+      background-color: #bfa14a;
+      outline: none;
+    }
+
+    /* Robot icon (simple SVG) */
+    #robot-assistant svg {
+      width: 32px;
+      height: 32px;
+      fill: #f5d76e;
+      filter: drop-shadow(0 0 2px #bfa14a);
+      pointer-events: none;
+    }
+
+    /* Tooltip with phone number */
+    #phone-tooltip {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      background: #001f3f;
+      color: #f5d76e;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      box-shadow: 0 0 15px rgba(191, 161, 74, 0.9);
+      user-select: text;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1001;
+      white-space: nowrap;
+    }
+
+    #phone-tooltip.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      #robot-assistant {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+      }
+      #phone-tooltip {
+        bottom: 80px;
+        right: 20px;
+        font-size: 1rem;
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <video id="bg-video" autoplay muted loop playsinline>
+    <source src="bg.mp4" type="video/mp4" />
+    Browser Anda tidak mendukung video background.
+  </video>
+  <div id="overlay"></div>
+
+  <div id="container" role="main" aria-label="Form cek ongkir dan gambar pekerja">
+    <div id="form-box">
+      <img src="logo.png" alt="Logo TAM Cargo" class="logo" />
+      <h1 class="gold-shimmer">Cek Ongkir TAM Cargo</h1>
+      <form id="ongkir-form" autocomplete="off" novalidate>
+        <label for="kotaPengirim">Kota Pengirim</label>
+        <select id="kotaPengirim" required aria-required="true" aria-describedby="kotaPengirimHelp">
+          <option value="" disabled selected>Pilih Kota Pengirim</option>
+        </select>
+
+        <label for="kotaPenerima">Kota Penerima</label>
+        <select id="kotaPenerima" required aria-required="true" aria-describedby="kotaPenerimaHelp">
+          <option value="" disabled selected>Pilih Kota Penerima</option>
+        </select>
+
+        <label for="layanan">Layanan</label>
+        <select id="layanan" required aria-required="true" aria-describedby="layananHelp">
+          <option value="" disabled selected>Pilih Layanan</option>
+        </select>
+
+        <label for="berat">Berat (kg)</label>
+        <input type="number" id="berat" min="0.1" step="0.1" placeholder="Masukkan berat barang" required aria-required="true" aria-describedby="beratHelp" />
+
+        <button type="submit">Hitung Ongkir</button>
+      </form>
+      <div id="result" aria-live="polite" role="region"></div>
+    </div>
+
+    <div id="worker-box" aria-label="Gambar orang sedang bekerja di TAM Cargo">
+      <img src="worker.png" alt="Orang sedang bekerja di TAM Cargo" />
+    </div>
+  </div>
+
+  <div id="team-video-container" aria-label="Video tim TAM Cargo">
+    <video controls preload="metadata" aria-describedby="teamDesc">
+      <source src="team.mp4" type="video/mp4" />
+      Video tidak didukung oleh browser Anda.
+    </video>
+    <p id="teamDesc">
+      Tim profesional TAM Cargo yang berdedikasi melayani Anda dengan sepenuh hati.
+    </p>
+  </div>
+
+  <!-- Robot assistant button -->
+  <div id="robot-assistant" tabindex="0" role="button" aria-label="Asisten Call Center TAM Cargo, klik untuk melihat nomor telepon">
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="32" r="30" stroke="#bfa14a" stroke-width="3" fill="#001f3f"/>
+      <rect x="20" y="25" width="24" height="14" rx="3" ry="3" fill="#f5d76e"/>
+      <circle cx="26" cy="32" r="3" fill="#001f3f"/>
+      <circle cx="38" cy="32" r="3" fill="#001f3f"/>
+      <rect x="28" y="40" width="8" height="4" rx="2" ry="2" fill="#bfa14a"/>
+    </svg>
+  </div>
+  <div id="phone-tooltip" role="tooltip" aria-live="polite">085126334797</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    (function(){
+      const kotaPengirimSelect = document.getElementById('kotaPengirim');
+      const kotaPenerimaSelect = document.getElementById('kotaPenerima');
+      const layananSelect = document.getElementById('layanan');
+      const beratInput = document.getElementById('berat');
+      const form = document.getElementById('ongkir-form');
+      const resultDiv = document.getElementById('result');
+
+      let tarifData = [];
+
+      function loadCSV(){
+        return new Promise((resolve, reject) => {
+          Papa.parse('tarif.csv', {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results){
+              if(results.errors.length){
+                reject(results.errors);
+              } else {
+                tarifData = results.data.map(row => ({
+                  KotaPengirim: row['Kota Pengirim'].trim(),
+                  KotaPenerima: row['Kota Penerima'].trim(),
+                  Layanan: row['Layanan'].trim(),
+                  TarifPerKg: parseFloat(row['Tarif per Kg']),
+                  BeratMinimum: parseFloat(row['Berat Minimum']),
+                  EstimasiHari: row['Estimasi (Hari)'].trim()
+                }));
+                resolve();
+              }
+            },
+            error: function(err){
+              reject(err);
+            }
+          });
+        });
+      }
+
+      function getUniqueCities(){
+        const cities = new Set();
+        tarifData.forEach(({KotaPengirim, KotaPenerima}) => {
+          cities.add(KotaPengirim);
+          cities.add(KotaPenerima);
+        });
+        return Array.from(cities).sort((a,b) => a.localeCompare(b));
+      }
+
+      function getUniqueLayanan(){
+        const layananSet = new Set();
+        tarifData.forEach(({Layanan}) => {
+          layananSet.add(Layanan);
+        });
+        return Array.from(layananSet).sort((a,b) => a.localeCompare(b));
+      }
+
+      function fillDropdowns(){
+        const cities = getUniqueCities();
+        cities.forEach(city => {
+          const option1 = document.createElement('option');
+          option1.value = city;
+          option1.textContent = city;
+          kotaPengirimSelect.appendChild(option1);
+
+          const option2 = document.createElement('option');
+          option2.value = city;
+          option2.textContent = city;
+          kotaPenerimaSelect.appendChild(option2);
+        });
+
+        const layananList = getUniqueLayanan();
+        layananList.forEach(layanan => {
+          const option = document.createElement('option');
+          option.value = layanan;
+          option.textContent = layanan;
+          layananSelect.appendChild(option);
+        });
+      }
+
+      function findTarif(kotaPengirim, kotaPenerima, layanan){
+        return tarifData.find(t => 
+          t.KotaPengirim === kotaPengirim && 
+          t.KotaPenerima === kotaPenerima &&
+          t.Layanan === layanan
+        );
+      }
+
+      function formatIDR(num){
+        return new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', minimumFractionDigits:0}).format(num);
+      }
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        resultDiv.style.display = 'none';
+        resultDiv.textContent = '';
+
+        const kotaPengirim = kotaPengirimSelect.value;
+        const kotaPenerima = kotaPenerimaSelect.value;
+        const layanan = layananSelect.value;
+        let berat = parseFloat
