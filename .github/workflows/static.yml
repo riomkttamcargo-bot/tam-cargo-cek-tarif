@@ -1,0 +1,19 @@
+function fillDropdowns(){
+  const cities = getUniqueCities();
+
+  // Hanya isi Kota Penerima
+  cities.forEach(city => {
+    const option2 = document.createElement('option');
+    option2.value = city;
+    option2.textContent = city;
+    kotaPenerimaSelect.appendChild(option2);
+  });
+
+  const layananList = getUniqueLayanan();
+  layananList.forEach(layanan => {
+    const option = document.createElement('option');
+    option.value = layanan;
+    option.textContent = layanan;
+    layananSelect.appendChild(option);
+  });
+}
